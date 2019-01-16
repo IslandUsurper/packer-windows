@@ -5,6 +5,7 @@ msiexec /qb /i C:\Windows\Temp\7z920-x64.msi
 
 if "%PACKER_BUILDER_TYPE%" equ "vmware-iso" goto :vmware
 if "%PACKER_BUILDER_TYPE%" equ "virtualbox-iso" goto :virtualbox
+if "%PACKER_BUILDER_TYPE%" equ "qemu" goto :qemu
 if "%PACKER_BUILDER_TYPE%" equ "parallels-iso" goto :parallels
 goto :done
 
@@ -28,10 +29,13 @@ goto :done
 
 :virtualbox
 
-move /Y C:\Users\vagrant\VBoxGuestAdditions.iso C:\Windows\Temp
-cmd /c ""C:\Program Files\7-Zip\7z.exe" x C:\Windows\Temp\VBoxGuestAdditions.iso -oC:\Windows\Temp\virtualbox"
-cmd /c for %%i in (C:\Windows\Temp\virtualbox\cert\vbox*.cer) do C:\Windows\Temp\virtualbox\cert\VBoxCertUtil add-trusted-publisher %%i --root %%i
-cmd /c C:\Windows\Temp\virtualbox\VBoxWindowsAdditions.exe /S
+cmd /c for %%i in (E:\cert\vbox*.cer) do E:\cert\VBoxCertUtil add-trusted-publisher %%i --root %%i
+cmd /c E:\VBoxWindowsAdditions.exe /S
+goto :done
+
+:qemu
+
+msiexec /qb /i E:\guest-agent\qemu-ga-x64.msi
 goto :done
 
 :parallels

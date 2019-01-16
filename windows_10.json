@@ -33,23 +33,27 @@
     },
     {
       "type": "virtualbox-iso",
+      "communicator": "winrm",
       "iso_url": "{{user `iso_url`}}",
       "iso_checksum_type": "{{user `iso_checksum_type`}}",
       "iso_checksum": "{{user `iso_checksum`}}",
       "headless": "{{user `headless`}}",
       "boot_wait": "2m",
-      "ssh_username": "vagrant",
-      "ssh_password": "vagrant",
-      "ssh_wait_timeout": "2h",
+      "guest_additions_mode": "attach",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
+      "winrm_timeout": "2h",
       "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
       "guest_os_type": "Windows10_64",
+      "virtualbox_version_file": "",
       "disk_size": "{{user `disk_size`}}",
       "floppy_files": [
         "{{user `autounattend`}}",
         "./scripts/fixnetwork.ps1",
         "./scripts/microsoft-updates.bat",
         "./scripts/win-updates.ps1",
-        "./scripts/openssh.ps1"
+        "./scripts/openssh.ps1",
+        "./vagrant.pub"
       ],
       "vboxmanage": [
         [
@@ -64,6 +68,40 @@
           "--cpus",
           "{{user `cpus`}}"
         ]
+      ]
+    },
+    {
+      "type": "qemu",
+      "accelerator": "kvm",
+      "machine_type": "pc",
+      "iso_url": "{{user `iso_url`}}",
+      "iso_checksum_type": "{{user `iso_checksum_type`}}",
+      "iso_checksum": "{{user `iso_checksum`}}",
+      "headless": "{{user `headless`}}",
+      "boot_wait": "2m",
+      "communicator": "winrm",
+      "winrm_username": "vagrant",
+      "winrm_password": "vagrant",
+      "winrm_timeout": "2h",
+      "shutdown_command": "shutdown /s /t 10 /f /d p:4:1 /c \"Packer Shutdown\"",
+      "disk_size": "{{user `disk_size`}}",
+      "floppy_files": [
+        "{{user `autounattend`}}",
+        "./scripts/fixnetwork.ps1",
+        "./scripts/microsoft-updates.bat",
+        "./scripts/win-updates.ps1",
+        "./scripts/openssh.ps1",
+        "./vagrant.pub"
+      ],
+      "qemuargs": [
+        ["-m", "{{user `memory_size`}}"],
+        ["-smp", "cpus={{user `cpus`}}"],
+        ["-device", "virtio-net,netdev=user.0"],
+        ["-drive", "id=virtiocd,if=none,format=raw,file=./iso/virtio-win-0.1.160.iso"],
+        ["-device", "driver=ide-cd,bus=ide.1,drive=virtiocd"],
+        ["-drive", "id=drive0,file=output-qemu/packer-qemu,if=none,cache=writeback,discard=ignore,format=qcow2"],
+        ["-device", "virtio-scsi-pci,id=scsi0"],
+        ["-device", "scsi-hd,bus=scsi0.0,drive=drive0"]
       ]
     },
     {
@@ -112,16 +150,11 @@
   ],
   "provisioners": [
     {
-      "type": "shell",
-      "remote_path": "/tmp/script.bat",
-      "execute_command": "{{.Vars}} cmd /c C:/Windows/Temp/script.bat",
+      "type": "windows-shell",
       "scripts": [
         "./scripts/vm-guest-tools.bat",
-        "./scripts/vagrant-ssh.bat",
         "./scripts/disable-auto-logon.bat",
-        "./scripts/enable-rdp.bat",
-        "./scripts/compile-dotnet-assemblies.bat",
-        "./scripts/compact.bat"
+        "./scripts/enable-rdp.bat"
       ]
     }
   ],

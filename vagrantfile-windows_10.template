@@ -16,7 +16,14 @@ Vagrant.configure("2") do |config|
     config.windows.halt_timeout = 15
 
     config.vm.network :forwarded_port, guest: 3389, host: 3389, id: "rdp", auto_correct: true
-    config.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", auto_correct: true
+    config.vm.network :forwarded_port, guest: 22, host: 2222, id: "ssh", disabled: true
+
+    config.vm.provider :libvirt do |v, override|
+        v.disk_bus = "scsi"
+        v.volume_cache = "writeback"
+        v.graphics_port = 5900
+        v.machine_type = "pc"
+    end
 
     config.vm.provider :virtualbox do |v, override|
         #v.gui = true
